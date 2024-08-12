@@ -90,7 +90,7 @@ const FlightListPage = () => {
       </div>
 
       <div className="space-y-4">
-        {myFlights?.map((flight) => (
+      {myFlights.length > 0 ? (myFlights?.map((flight) => (
           <div
             key={flight.id}
             className="bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between "
@@ -150,7 +150,9 @@ const FlightListPage = () => {
               </div>
             </div>
           </div>
-        ))}
+        ))) : (
+          <p>No flights available for the selected criteria.</p>
+        )}
       </div>
     </div>
   );

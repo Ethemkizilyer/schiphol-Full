@@ -1,19 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { FaPlaneDeparture, FaPlaneArrival, FaPlane } from "react-icons/fa";
+import { FaPlaneDeparture, FaPlaneArrival } from "react-icons/fa";
 import { AiOutlineUser } from "react-icons/ai";
 import axios from "axios";
 import car from "../car.jpeg";
 import hotels from "../hotelss.jpg";
 import travel from "../travelPackages.png";
-import cities from "../cities.json";
-import TimeDifferenceCalculator from "../lib/DateCalculator";
 import { Bounce, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import moment from "moment";
+
+import FlightCard from "./FlightCard";
+import PromoCard from "./PromoCard";
 
 const FlightBooking = () => {
   const [flights, setFlights] = useState([]);
-
+  const [formData, setFormData] = useState({
+    flightNumber: "",
+    departureDate: "",
+    departureTime: "",
+    arrivalTime: "",
+    origin: "",
+    destination: "",
+    status: "",
+    route: "",
+    searchDateTimeField: "",
+    airline: "",
+  });
   const navigate = useNavigate();
   useEffect(() => {
     const fetchFlights = async () => {
@@ -31,21 +42,9 @@ const FlightBooking = () => {
     fetchFlights();
   }, []);
 
-
-  const [formData, setFormData] = useState({
-    flightNumber: "",
-    departureDate: "",
-    departureTime: "",
-    arrivalTime: "",
-    origin: "",
-    destination: "",
-    status: "",
-    route: "",
-    searchDateTimeField: "",
-  });
+ 
 
   const handleChange = (e) => {
-    console.log("ETHE", e.target.name, e.target.value);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -101,7 +100,7 @@ const FlightBooking = () => {
         transition: Bounce,
       });
     } catch (error) {
-      toast.error("Error fetching flight data:", error, {
+      toast.error(error.message, {
         position: "top-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -114,7 +113,7 @@ const FlightBooking = () => {
       });
     }
   };
-  const [selectedTrip, setSelectedTrip] = useState('roundTrip');
+  const [selectedTrip, setSelectedTrip] = useState("roundTrip");
 
   const handleTripChange = (i) => {
     setSelectedTrip(i);
@@ -125,7 +124,7 @@ const FlightBooking = () => {
         <div className="text-xl font-bold text-purple-800">PLANE SCAPE</div>
         <div className="flex items-center space-x-4">
           <span
-            className="text-purple-600 shadow-lg cursor-pointer p-1 rounded-lg hover:bg-blue-500 hover:text-white"
+            className="text-white shadow-lg cursor-pointer p-1 rounded-lg bg-purple-500 hover:bg-purple-100 hover:text-purple-600"
             onClick={() => navigate("/my-flights")}
           >
             My Book
@@ -133,7 +132,7 @@ const FlightBooking = () => {
           <span className="text-purple-600">Discover</span>
           <div className="flex items-center space-x-2">
             <AiOutlineUser size={24} className="text-purple-800" />
-            <span className="text-purple-800">Joanne Smith</span>
+            <span className="text-purple-800">Ethem KIZILYER</span>
           </div>
         </div>
       </header>
@@ -144,19 +143,39 @@ const FlightBooking = () => {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold mb-4 ">BOOK YOUR FLIGHT</h2>
             <div className="flex space-x-1 mb-6">
-      <div className={`flex items-center space-x-2 border rounded-tl-3xl p-4 rounded-bl-3xl cursor-pointer ${selectedTrip === 'roundTrip' ? 'bg-purple-600' : 'bg-white'}`} onClick={()=>handleTripChange('roundTrip')}>
-        <button  className={`${selectedTrip === 'roundTrip' ? "bg-purple-600 text-white" : "bg-white text-purple-600" }`}>
-        
-          Round Trip
-        </button>
-      </div>
-      <div className={`flex items-center space-x-2 border rounded-tr-3xl p-4 rounded-br-3xl cursor-pointer ${selectedTrip === 'oneWay' ? 'bg-purple-600' : 'bg-white'}`} onClick={()=>handleTripChange('oneWay')}>
-        <button  className={`${selectedTrip === 'oneWay' ? "bg-purple-600 text-white" : "bg-white text-purple-600" }`}>
-        
-          One Way
-        </button>
-      </div>
-    </div>
+              <div
+                className={`flex items-center space-x-2 border rounded-tl-3xl p-4 rounded-bl-3xl cursor-pointer ${
+                  selectedTrip === "roundTrip" ? "bg-purple-600" : "bg-white"
+                }`}
+                onClick={() => handleTripChange("roundTrip")}
+              >
+                <button
+                  className={`${
+                    selectedTrip === "roundTrip"
+                      ? "bg-purple-600 text-white"
+                      : "bg-white text-purple-600"
+                  }`}
+                >
+                  Round Trip
+                </button>
+              </div>
+              <div
+                className={`flex items-center space-x-2 border rounded-tr-3xl p-4 rounded-br-3xl cursor-pointer ${
+                  selectedTrip === "oneWay" ? "bg-purple-600" : "bg-white"
+                }`}
+                onClick={() => handleTripChange("oneWay")}
+              >
+                <button
+                  className={`${
+                    selectedTrip === "oneWay"
+                      ? "bg-purple-600 text-white"
+                      : "bg-white text-purple-600"
+                  }`}
+                >
+                  One Way
+                </button>
+              </div>
+            </div>
           </div>
           <div className="flex justify-between flex-wrap gap-1">
             <div className="col-span-1">
@@ -171,22 +190,27 @@ const FlightBooking = () => {
             </div>
             <div className="flex col-span-2 gap-1">
               <div className="relative">
-              <FaPlaneDeparture size={16} className="text-purple-500 absolute top-[25%] left-2" />
-              <input
-                type="text"
-                placeholder="       From"
-                className="col-span-1 p-2 border rounded-tl-2xl rounded-bl-2xl"
-              />
-              
+                <FaPlaneDeparture
+                  size={16}
+                  className="text-purple-500 absolute top-[25%] left-2"
+                />
+                <input
+                  type="text"
+                  placeholder="From"
+                  className="col-span-1 py-2 border rounded-tl-2xl ps-7 rounded-bl-2xl"
+                />
               </div>
               <div className="relative">
-              <FaPlaneArrival size={16} className="text-purple-500 absolute top-[25%] left-2" /> 
-              <input
-                type="text"
-                placeholder="       To"
-                className="col-span-1 p-2 border rounded-tr-2xl rounded-br-2xl"
-              />
-            </div>
+                <FaPlaneArrival
+                  size={16}
+                  className="text-purple-500 absolute top-[25%] left-2"
+                />
+                <input
+                  type="text"
+                  placeholder="To"
+                  className="col-span-1 py-2 border rounded-tr-2xl ps-7 rounded-br-2xl"
+                />
+              </div>
             </div>
             <div className="flex col-span-2 gap-1">
               <input
@@ -211,69 +235,76 @@ const FlightBooking = () => {
             Show Flights
           </button>
           <div className="flex flex-col lg:flex-row lg:space-x-6 overflow-hidden h-[59vh]">
+            {/* Flight Cards */}
+            <div className="space-y-8 flex-1 bg-white rounded-xl p-6 shadow-lg overflow-y-auto order-last sm:order-last md:order-last lg:order-last xl:order-first">
+              {flights.length > 0 ? (
+                flights.map((flight) => (
+                  <FlightCard key={flight.id} flight={flight} />
+                ))
+              ) : (
+                <p>No flights available for the selected criteria.</p>
+              )}
+            </div>
+            {/* Filter & Sort Section */}
+            <div className="flex justify-start items-start flex-col w-full lg:w-1/5 space-y-1  order-first md:order-first  lg:order-last sm:order-first xs:order-first xl:order-last">
+              <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
+                <span className="text-gray-600">Sort by:</span>
+                <select
+                  name="sort"
+                  value={formData.scheduleTime}
+                  onChange={handleChange}
+                  className="border rounded-md w-full"
+                >
+                  <option value=""></option>
+                  <option value="+scheduleTime">Schedule Time</option>
+                  <option value="+lastUpdatedAt">Last Update At</option>
+                  <option value="+actualLandingTime">
+                    Actual Landing Time
+                  </option>
+                </select>
+              </div>
 
+              <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
+                <span className="text-gray-600">Flight Direction:</span>
+                <select
+                  name="flightDirection"
+                  value={formData.flightDirection}
+                  onChange={handleChange}
+                  className="border rounded-md w-full"
+                >
+                  <option value=""></option>
+                  <option value="A">Arrival</option>
+                  <option value="D">Departure</option>
+                </select>
+              </div>
 
-  {/* Flight Cards */}
-  <div className="space-y-8 flex-1 bg-white rounded-xl p-6 shadow-lg overflow-y-auto order-first lg:order-last">
-    {flights.length > 0 ? (
-      flights.map((flight) => (
-        <FlightCard key={flight.id} flight={flight} />
-      ))
-    ) : (
-      <p>No flights available for the selected criteria.</p>
-    )}
-  </div>
-    {/* Filter & Sort Section */}
-    <div className="flex justify-start items-start lg:mt-8 flex-col w-full lg:w-1/5 space-y-6 order-last lg:order-last">
-    <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
-      <span className="text-gray-600">Sort by:</span>
-      <select
-        name="sort"
-        value={formData.scheduleTime}
-        onChange={handleChange}
-        className="border rounded-md"
-      >
-        <option value=""></option>
-        <option value="+scheduleTime">Schedule Time</option>
-        <option value="+lastUpdatedAt">Last Update At</option>
-        <option value="+actualLandingTime">Actual Landing Time</option>
-      </select>
-    </div>
-
-    <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
-      <span className="text-gray-600">Flight Direction:</span>
-      <select
-        name="flightDirection"
-        value={formData.flightDirection}
-        onChange={handleChange}
-        className="border rounded-md"
-      >
-        <option value=""></option>
-        <option value="A">Arrival</option>
-        <option value="D">Departure</option>
-      </select>
-    </div>
-
-    <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
-      <span className="text-gray-600">Search Date Time Field:</span>
-      <select
-        name="searchDateTimeField"
-        value={formData.searchDateTimeField}
-        onChange={handleChange}
-        className="border rounded-md"
-      >
-        <option value=""></option>
-        <option value="estimatedLandingTime">estimatedLandingTime</option>
-        <option value="actualLandingTime">actualLandingTime</option>
-        <option value="expectedTimeBoarding">expectedTimeBoarding</option>
-        <option value="expectedTimeGateClosing">expectedTimeGateClosing</option>
-        <option value="expectedTimeGateOpen">expectedTimeGateOpen</option>
-        <option value="lastUpdatedAt">lastUpdatedAt</option>
-      </select>
-    </div>
-  </div>
-</div>
-
+              <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
+                <span className="text-gray-600">Search Date Time Field:</span>
+                <select
+                  name="searchDateTimeField"
+                  value={formData.searchDateTimeField}
+                  onChange={handleChange}
+                  className="border rounded-md w-full"
+                >
+                  <option value=""></option>
+                  <option value="estimatedLandingTime">
+                    Estimated Landing Time
+                  </option>
+                  <option value="actualLandingTime">Actual Landing Time</option>
+                  <option value="expectedTimeBoarding">
+                    Expected Time Boarding
+                  </option>
+                  <option value="expectedTimeGateClosing">
+                    Expected Time Gate Closing
+                  </option>
+                  <option value="expectedTimeGateOpen">
+                    Expected Time Gate Open
+                  </option>
+                  <option value="lastUpdatedAt">Last Updated At</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Promotion Section */}
@@ -286,142 +317,5 @@ const FlightBooking = () => {
     </div>
   );
 };
-
-const FlightCard = ({ flight }) => {
-  const [convertedCity, setConvertedCity] = useState("");
-  const navigate = useNavigate();
-  // origin="Milano"
-  // destination="Madrid"
-  // departureTime="7:30 AM"
-  // arrivalTime="9:55 AM"
-  // price="$200"
-  // flightDuration="2h 25m"
-  const countryConverter = (code) => {
-    setConvertedCity(
-      cities.filter((city) => {
-        return city?.code === code;
-      })
-    );
-  };
-
-  useEffect(() => {
-    countryConverter(flight?.route?.destinations[0]);
-  }, []);
-
-  const handleBookFlight = async () => {
-    const flightDate = new Date(flight?.scheduleTime);
-    const currentDate = new Date();
-
-    if (flightDate < currentDate) {
-      alert("You cannot book a flight for a past date.");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/flights/book-flight",
-        flight
-      );
-
-      if (response.data.success) {
-        toast.success("Flight booked successfully!", {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          transition: Bounce,
-        });
-        navigate("/my-flights");
-      }
-    } catch (error) {
-      toast.error("Failed to book flight. Please try again.", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-        transition: Bounce,
-      });
-    }
-  };
-
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-lg relative">
-      <div className="flex flex-col justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold">
-            {flight?.flightDirection !== "A" && "Schiphol - "}
-            {convertedCity.length > 0
-              ? convertedCity[0]?.city.replace(/\d/g, "")
-              : flight?.route?.destinations[0]}{" "}
-            {flight?.flightDirection === "A" && " - Schiphol"}
-          </h3>
-        </div>
-        <div className="flex space-x-6 justify-between items-center">
-          <div className="text-center flex flex-col justify-center items-center">
-            <FaPlaneDeparture size={24} className="text-purple-500" />
-            <p className="text-sm">
-              {moment(flight?.estimatedLandingTime).format(
-                "DD.MM.YYYY hh:mm:ss"
-              )}
-            </p>
-          </div>
-          <div className="w-full h-[2px] bg-purple-400"></div>
-          <div className="text-center flex flex-col justify-center items-center">
-            <FaPlane size={24} className="text-purple-500" />
-            <p className="text-sm text-gray-500">
-              <TimeDifferenceCalculator
-                estimatedLandingTime={flight?.estimatedLandingTime}
-                expectedTimeOnBelt={flight?.expectedTimeOnBelt}
-              />
-            </p>
-          </div>
-          <div className="w-full h-[2px] bg-purple-400"></div>
-          <div className="text-center flex flex-col justify-center items-center">
-            <FaPlaneArrival size={24} className="text-purple-500 text-center" />
-            <p className="text-sm">
-              {moment(flight?.expectedTimeOnBelt).format("DD.MM.YYYY hh:mm:ss")}
-            </p>
-          </div>
-        </div>
-        <div className="flex justify-between items-center flex-wrap">
-          <div className="text-right">
-            <p className="text-lg text-purple-600 font-bold">Price:$200</p>
-            <p className="text-sm text-gray-500">Round Trip</p>
-          </div>
-          <button
-            className="bg-purple-500 text-white px-4 py-2 rounded-md"
-            onClick={handleBookFlight}
-          >
-            Book Flight
-          </button>
-        </div>
-      </div>
-      <span className="absolute cursor-pointer -bottom-8 left-0 bg-purple-400 px-2 pt-0.5 pb-2 rounded-bl-2xl rounded-br-2xl text-white">
-        <u>Check the details</u>
-      </span>
-    </div>
-  );
-};
-
-const PromoCard = ({ title, image }) => (
-  <div className="relative">
-    <img
-      src={image}
-      alt={title}
-      className="w-full h-40 object-cover rounded-lg"
-    />
-    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-      <h3 className="text-white text-lg font-semibold">{title}</h3>
-    </div>
-  </div>
-);
 
 export default FlightBooking;

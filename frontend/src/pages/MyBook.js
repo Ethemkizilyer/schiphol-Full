@@ -48,8 +48,8 @@ const FlightListPage = () => {
   console.log("myFlights", myFlights);
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex space-x-4">
+      <div className="flex justify-between items-center flex-wrap mb-4 gap-2">
+        <div className="flex space-4 gap-2 flex-wrap">
           <button
             onClick={() => navigate("/")}
             className="bg-blue-400 py-2 px-4 border rounded-lg"
@@ -90,7 +90,7 @@ const FlightListPage = () => {
       </div>
 
       <div className="space-y-4">
-      {myFlights.length > 0 ? (myFlights?.map((flight) => (
+        {myFlights.length > 0 ? (myFlights?.map((flight) => (
           <div
             key={flight.id}
             className="bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between "
@@ -101,13 +101,13 @@ const FlightListPage = () => {
                 alt={flight.airline}
                 className="w-12 h-12"
               />
-              <div className="flex">
-                <h3>{moment(flight.estimatedLandingTime).format("hh.mm A")}</h3>{" "}
-                -<h3>{moment(flight.expectedTimeOnBelt).format("hh.mm A")}</h3>
+              <div className="flex gap-2">
+                <h2 className="text-2xl font-semibold">{moment(flight.estimatedLandingTime).format("hh.mm A")}</h2>{" "}
+                <span className="text-2xl font-semibold">{"- "}</span>{" "}<h2 className="text-2xl font-semibold">{moment(flight.expectedTimeOnBelt).format("hh.mm A")}</h2>
               </div>
             </div>
             <div>
-              <div className="flex space-x-4 justify-between items-center ">
+              <div className="flex space-4 justify-between items-center flex-wrap">
                 <div>
                   <h3 className="text-xl font-semibold">
                     {
@@ -131,9 +131,13 @@ const FlightListPage = () => {
                 <div>
                   <p className="text-gray-500">
                     {" "}
-                    {flight?.flightDirection !== "A" && "Schiphol - "}
-                    {flight?.route?.destinations[0]}{" "}
-                    {flight?.flightDirection === "A" && " - Schiphol"}
+                    {flight?.flightDirection !== "A" && "Schiphol Zuid - "}
+                    {
+                      cities.find(
+                        (item) => item.code === flight.route.destinations[0]
+                      ).name
+                    }{" "}
+                    {flight?.flightDirection === "A" && " - Schiphol Zuid"}
                   </p>
                   <p className="text-gray-500">{flight.flightName}</p>
                 </div>

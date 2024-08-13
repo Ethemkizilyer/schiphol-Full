@@ -1,122 +1,85 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer } from "react";
 import { FaPlaneDeparture, FaPlaneArrival } from "react-icons/fa";
 import { AiOutlineUser } from "react-icons/ai";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import FlightCard from "./FlightCard";
+import PromoCard from "./PromoCard";
 import car from "../car.jpeg";
 import hotels from "../hotelss.jpg";
 import travel from "../travelPackages.png";
-import { Bounce, toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import useFlights from "../hooks/useFlights";
 
-import FlightCard from "./FlightCard";
-import PromoCard from "./PromoCard";
+const initialState = {
+  flightNumber: "",
+  departureDate: "",
+  departureTime: "",
+  arrivalTime: "",
+  origin: "",
+  destination: "",
+  status: "",
+  route: "",
+  searchDateTimeField: "",
+  airline: "",
+  flights: [],
+  selectedTrip: "roundTrip",
+};
+
+function formReducer(state, action) {
+  switch (action.type) {
+    case "SET_FIELD_VALUE":
+      return {
+        ...state,
+        [action.field]: action.value,
+      };
+    case "SET_FLIGHTS":
+      return {
+        ...state,
+        flights: action.payload,
+      };
+    case "SET_SELECTED_TRIP":
+      return {
+        ...state,
+        selectedTrip: action.payload,
+      };
+    default:
+      return state;
+  }
+}
 
 const FlightBooking = () => {
-  const [flights, setFlights] = useState([]);
-  const [formData, setFormData] = useState({
-    flightNumber: "",
-    departureDate: "",
-    departureTime: "",
-    arrivalTime: "",
-    origin: "",
-    destination: "",
-    status: "",
-    route: "",
-    searchDateTimeField: "",
-    airline: "",
-  });
+  const { flights, fetchFlights } = useFlights("http://localhost:5000/api/flights/schiphol-flights");
+  const [state, dispatch] = useReducer(formReducer, initialState);
   const navigate = useNavigate();
-  useEffect(() => {
-    const fetchFlights = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/flights/schiphol-flights"
-        );
-        setFlights(response?.data?.flights);
-        console.log("Flights:", response.data.flights);
-      } catch (error) {
-        console.error("Error fetching flights:", error);
-      }
-    };
 
+  useEffect(() => {
     fetchFlights();
+  }, [fetchFlights]);
+
+  useEffect(() => {
+    dispatch({ type: "SET_FLIGHTS", payload: flights });
   }, []);
 
- 
-
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+    dispatch({
+      type: "SET_FIELD_VALUE",
+      field: e.target.name,
+      value: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const queryParams = [];
+    const queryParams = Object.entries(state)
+      .filter(([, value]) => value)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
 
-    if (formData.flightNumber)
-      queryParams.push(`flightNumber=${formData.flightNumber}`);
-    if (formData.departureDate)
-      queryParams.push(`departureDate=${formData.departureDate}`);
-    if (formData.departureTime)
-      queryParams.push(`departureTime=${formData.departureTime}`);
-    if (formData.arrivalTime)
-      queryParams.push(`arrivalTime=${formData.arrivalTime}`);
-    if (formData.origin) queryParams.push(`origin=${formData.origin}`);
-    if (formData.fromDateTime)
-      queryParams.push(`fromDateTime=${formData.fromDateTime}:24`);
-    if (formData.toDateTime)
-      queryParams.push(`toDateTime=${formData.toDateTime}:24`);
-    if (formData.destination)
-      queryParams.push(`destination=${formData.destination}`);
-    if (formData.status) queryParams.push(`status=${formData.status}`);
-    if (formData.sort) queryParams.push(`sort=${formData.sort}`);
-    if (formData.flightDirection)
-      queryParams.push(`flightDirection=${formData.flightDirection}`);
-    if (formData.airline) queryParams.push(`airline=${formData.airline}`);
-    if (formData.searchDateTimeField)
-      queryParams.push(`searchDateTimeField=${formData.searchDateTimeField}`);
-
-    const queryString =
-      queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
-
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/flights/schiphol-flights${queryString}`
-      );
-
-      setFlights(response.data.flights);
-      toast.success("Flight data fetched successfully!", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-        transition: Bounce,
-      });
-    } catch (error) {
-      toast.error(error.message, {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-        transition: Bounce,
-      });
-    }
+    await fetchFlights(queryParams ? `?${queryParams}` : "");
   };
-  const [selectedTrip, setSelectedTrip] = useState("roundTrip");
 
-  const handleTripChange = (i) => {
-    setSelectedTrip(i);
+  const handleTripChange = (tripType) => {
+    dispatch({ type: "SET_SELECTED_TRIP", payload: tripType });
   };
   return (
     <div className="bg-purple-50 min-h-screen  p-3">
@@ -145,13 +108,13 @@ const FlightBooking = () => {
             <div className="flex space-x-1 mb-6">
               <div
                 className={`flex items-center space-x-2 border rounded-tl-3xl p-4 rounded-bl-3xl cursor-pointer ${
-                  selectedTrip === "roundTrip" ? "bg-purple-600" : "bg-white"
+                  state.selectedTrip === "roundTrip" ? "bg-purple-600" : "bg-white"
                 }`}
                 onClick={() => handleTripChange("roundTrip")}
               >
                 <button
                   className={`${
-                    selectedTrip === "roundTrip"
+                    state.selectedTrip === "roundTrip"
                       ? "bg-purple-600 text-white"
                       : "bg-white text-purple-600"
                   }`}
@@ -161,13 +124,13 @@ const FlightBooking = () => {
               </div>
               <div
                 className={`flex items-center space-x-2 border rounded-tr-3xl p-4 rounded-br-3xl cursor-pointer ${
-                  selectedTrip === "oneWay" ? "bg-purple-600" : "bg-white"
+                  state.selectedTrip === "oneWay" ? "bg-purple-600" : "bg-white"
                 }`}
                 onClick={() => handleTripChange("oneWay")}
               >
                 <button
                   className={`${
-                    selectedTrip === "oneWay"
+                    state.selectedTrip === "oneWay"
                       ? "bg-purple-600 text-white"
                       : "bg-white text-purple-600"
                   }`}
@@ -184,7 +147,7 @@ const FlightBooking = () => {
                 placeholder="Airline"
                 className="p-2 border rounded-2xl"
                 name="airline"
-                value={formData.airline}
+                value={state.airline}
                 onChange={handleChange}
               />
             </div>
@@ -246,12 +209,12 @@ const FlightBooking = () => {
               )}
             </div>
             {/* Filter & Sort Section */}
-            <div className="flex justify-start items-start flex-col w-full lg:w-1/5 space-y-1  order-first md:order-first  lg:order-last sm:order-first xs:order-first xl:order-last">
+            <div className="flex justify-start items-start flex-col w-full lg:w-1/5 space-y-1  order-first md:order-first  lg:order-last sm:order-first  xl:order-last">
               <div className="flex items-start gap-1 flex-col justify-start p-2 w-full">
                 <span className="text-gray-600">Sort by:</span>
                 <select
                   name="sort"
-                  value={formData.scheduleTime}
+                  value={state.scheduleTime}
                   onChange={handleChange}
                   className="border rounded-md w-full"
                 >
@@ -268,7 +231,7 @@ const FlightBooking = () => {
                 <span className="text-gray-600">Flight Direction:</span>
                 <select
                   name="flightDirection"
-                  value={formData.flightDirection}
+                  value={state.flightDirection}
                   onChange={handleChange}
                   className="border rounded-md w-full"
                 >
@@ -282,7 +245,7 @@ const FlightBooking = () => {
                 <span className="text-gray-600">Search Date Time Field:</span>
                 <select
                   name="searchDateTimeField"
-                  value={formData.searchDateTimeField}
+                  value={state.searchDateTimeField}
                   onChange={handleChange}
                   className="border rounded-md w-full"
                 >
@@ -308,7 +271,7 @@ const FlightBooking = () => {
         </div>
 
         {/* Promotion Section */}
-        <div className="w-1/6 space-y-6">
+        <div className="xl:w-1/6 lg:w-1/6 md:w-1/6 space-y-6 w-full">
           <PromoCard title="CAR RENTALS" image={car} />
           <PromoCard title="HOTELS" image={hotels} />
           <PromoCard title="TRAVEL PACKAGES" image={travel} />

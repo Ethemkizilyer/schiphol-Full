@@ -8,6 +8,7 @@ router.get('/schiphol-flights', async (req, res) => {
   try {
     const params = {
       sort: req.query.sort,
+      page: req.query.page || 1,
       flightDirection: req.query.flightDirection,
       flightNumber: req.query.flightNumber,
       scheduleDate: req.query.departureDate,
@@ -18,6 +19,7 @@ router.get('/schiphol-flights', async (req, res) => {
       fromDateTime: req.query.fromDateTime,
       toDateTime: req.query.toDateTime,
       searchDateTimeField: req.query.searchDateTimeField,
+      expectedTimeOnBelt: req.query.expectedTimeOnBelt,
     };
 
     // Boş olan parametreleri kaldırmak için
@@ -34,7 +36,7 @@ console.log("params",params)
       params: params,
     });
 
-    console.log("API Response Data:", response.data);
+    console.log("API Response Data:", response);
 
     res.json({ flights: response.data.flights });
   } catch (error) {

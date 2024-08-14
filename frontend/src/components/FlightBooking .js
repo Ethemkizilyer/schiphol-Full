@@ -1,5 +1,5 @@
-import React, { useEffect, useReducer } from "react";
-import { FaPlaneDeparture, FaPlaneArrival } from "react-icons/fa";
+import React, { useEffect, useReducer, useState } from "react";
+import { FaPlaneDeparture, FaPlaneArrival, FaChevronCircleLeft, FaChevronCircleRight } from "react-icons/fa";
 import { AiOutlineUser } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import FlightCard from "./FlightCard";
@@ -49,11 +49,27 @@ function formReducer(state, action) {
 const FlightBooking = () => {
   const { flights, fetchFlights } = useFlights("http://localhost:5000/api/flights/schiphol-flights");
   const [state, dispatch] = useReducer(formReducer, initialState);
+  const [page, setPage] = useState(1);
+  const perPage = 3
   const navigate = useNavigate();
+    const nextPage = () => {
+  
+        setPage((prevPage) => prevPage + 1);
+      
+    };
+  
+    const prevPage = () => {
+      setPage((prevPage) => Math.max(prevPage - 1, 1));
+    };
+  
+    const handlePageClick = (pageNumber) => {
+      setPage(pageNumber);
+    };
+    const firstPage = Math.floor((page - 1) / perPage) * perPage + 1;
 
   useEffect(() => {
-    fetchFlights();
-  }, [fetchFlights]);
+    fetchFlights(`?page=${page}`);
+  }, [fetchFlights,page]);
 
   useEffect(() => {
     dispatch({ type: "SET_FLIGHTS", payload: flights });
@@ -74,8 +90,8 @@ const FlightBooking = () => {
       .filter(([, value]) => value)
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
-
-    await fetchFlights(queryParams ? `?${queryParams}` : "");
+console.log("queryParams",queryParams)
+    await fetchFlights(queryParams ? `?page=${page}&${queryParams}` : `?page=${page}`);
   };
 
   const handleTripChange = (tripType) => {
@@ -268,6 +284,45 @@ const FlightBooking = () => {
               </div>
             </div>
           </div>
+          <div>
+
+      <div className="flex items-center justify-center gap-1">
+        <button
+          onClick={prevPage}
+          disabled={page === 1}
+          className={`border border-purple-600 text-purple-600 p-2 rounded ${
+            page === 1 ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          <FaChevronCircleLeft size={24}/>
+        </button>
+
+        {[...Array(perPage)].map((_, index) => {
+          const pageNumber = firstPage + index;
+          return (
+            <button
+              key={pageNumber}
+              onClick={() => handlePageClick(pageNumber)}
+              className={`border border-purple-600 text-purple-600 p-2 rounded ${
+                pageNumber === page ? 'bg-purple-600 text-white' : ''
+              }`}
+            >
+              {pageNumber}
+            </button>
+          );
+        })}
+
+        <button
+          onClick={nextPage}
+          disabled={flights.length < perPage}
+          className={`border border-purple-600 text-purple-600 p-2 rounded ${
+            flights.length < perPage ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          <FaChevronCircleRight size={24}/>
+        </button>
+      </div>
+    </div>
         </div>
 
         {/* Promotion Section */}
@@ -277,6 +332,7 @@ const FlightBooking = () => {
           <PromoCard title="TRAVEL PACKAGES" image={travel} />
         </div>
       </div>
+
     </div>
   );
 };
